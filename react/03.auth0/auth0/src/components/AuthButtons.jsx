@@ -5,6 +5,8 @@ import { useAuth0 } from "@auth0/auth0-react";
 const AuthButtons = () => {
   const { loginWithRedirect, logout, isAuthenticated } = useAuth0();
 
+console.log(window.location.origin)
+
   return (
     <div className="auth-buttons">
       {isAuthenticated ? (

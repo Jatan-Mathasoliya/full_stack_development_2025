@@ -19,11 +19,11 @@ const StudentManagement = () => {
       .then((res) => res.json())
       .then((data) => {
         // Ensure rollNumber is treated as a number
-        const formattedData = data.map((student) => ({
-          ...student,
-          rollNumber: Number(student.rollNumber),
-        }));
-        setStudents(formattedData);
+        // const formattedData = data.map((student) => ({
+        //   ...student,
+        //   rollNumber: Number(student.rollNumber),
+        // }));
+        setStudents(data);
       })
       .catch((error) => console.error("Error fetching students:", error));
   }, []);
@@ -40,7 +40,7 @@ const StudentManagement = () => {
   };
 
   // Add a new student
-  const addStudent = () => {
+  const addStudent = () => {  
     const newStudent = {
       ...formData,
       coursesEnrolled: formData.coursesEnrolled.split(",").map((course) => course.trim()),

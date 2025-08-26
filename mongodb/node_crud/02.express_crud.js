@@ -6,7 +6,7 @@ const port = 3000;
 
 // MongoDB connection details
 const uri = "mongodb://127.0.0.1:27017"; 
-const dbName = "codinggita";
+const dbName = "CodingGita";
 
 // Middleware
 app.use(express.json());
@@ -20,7 +20,7 @@ async function initializeDatabase() {
         console.log("Connected to MongoDB");
 
         db = client.db(dbName);
-        students = db.collection("students");
+        students = db.collection("hello");
 
         // Start server after successful DB connection
         app.listen(port, () => {
