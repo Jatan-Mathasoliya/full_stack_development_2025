@@ -13,7 +13,7 @@ export default function Blogs({ posts, time }) {
         ))}
       </ul>
       <p>
-        (This page will revalidate every <strong>30 seconds</strong>)
+        (This page will revalidate every <strong>5 seconds</strong>)
       </p>
     </div>
   );
@@ -28,6 +28,6 @@ export async function getStaticProps() {
       posts,
       time: new Date().toLocaleTimeString(),
     },
-    revalidate: 30, // ISR interval
+    revalidate: 5, // ISR interval
   };
 }
