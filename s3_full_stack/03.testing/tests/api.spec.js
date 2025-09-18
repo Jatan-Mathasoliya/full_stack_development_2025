@@ -101,14 +101,20 @@ test.describe('Next.js (App Router) workbook API', () => {
     const res = await request.get('/api/companies?limit=0');
 
     expect(res.status()).toBe(200);
+    const { count, total: totalAll, items } = await res.json();
+    expect(count).toBe(totalAll);
+    expect(items.length).toBe(totalAll);
+    expect(totalAll).toBe(15);
 
-    const { count, total, items } = await res.json();
+    const resFiltered = await request.get('/api/companies/count?name=Microsoft');
+    expect(resFiltered.status()).toBe(200);
+    const { total: totalFiltered } = await resFiltered.json();
+    expect(totalFiltered).toBeLessThanOrEqual(totalAll);
 
-    expect(count).toBe(total);
-
-    expect(items.length).toBe(total);
-
-    expect(total).toBe(15);
+    const resNotFound = await request.get('/api/companies/count?name=DoesNotExist123');
+    expect(resNotFound.status()).toBe(200);
+    const { total: totalNotFound } = await resNotFound.json();
+    expect(totalNotFound).toBe(0);
   });
 
   test('GET /api/companies?name=Microsoft&location=Hyderabad returns matching companies', async ({ request }) => {
@@ -128,6 +134,56 @@ test.describe('Next.js (App Router) workbook API', () => {
       expect(it.location.toLowerCase()).toContain('hyderabad');
     });
   });
+
+  test('GET /api/companies/top-paid validation', async ({ request }) => {
+
+    const resDefault = await request.get('/api/companies/top-paid');
+    expect(resDefault.status()).toBe(200);
+    const { items: defaultItems } = await resDefault.json();
+    expect(defaultItems.length).toBeLessThanOrEqual(5);
+
+    const resLimit10 = await request.get('/api/companies/top-paid?limit=10');
+    expect(resLimit10.status()).toBe(200);
+    const { items: limit10Items } = await resLimit10.json();
+    expect(limit10Items.length).toBeLessThanOrEqual(10);
+
+    const bases = limit10Items.map(it => it.salaryBand?.base ?? 0);
+    for (let i = 0; i < bases.length - 1; i++) {
+      expect(bases[i]).toBeGreaterThanOrEqual(bases[i + 1]);
+    }
+
+    const resLimit3 = await request.get('/api/companies/top-paid?limit=3');
+    expect(resLimit3.status()).toBe(200);
+    const { items: limit3Items } = await resLimit3.json();
+    expect(limit3Items.length).toBeLessThanOrEqual(3);
+  });
+
+  test('GET /api/companies/by-skill/:skill works correctly', async ({ request }) => {
+    // 1️⃣ Positive case: valid skill
+    const res1 = await request.get('/api/companies/by-skill/DSA');
+    expect(res1.status()).toBe(200);
+    const body1 = await res1.json();
+    expect(body1.count).toBeGreaterThan(0);
+    body1.items.forEach(it => {
+      expect(it.hiringCriteria.skills).toEqual(
+        expect.arrayContaining([expect.stringMatching(/dsa/i)])
+      );
+    });
+
+    // 2️⃣ Case-insensitive check
+    const res2 = await request.get('/api/companies/by-skill/dsa');
+    expect(res2.status()).toBe(200);
+    const body2 = await res2.json();
+    expect(body2.count).toBe(body1.count); // should match case-insensitively
+
+    // 3️⃣ Negative case: non-existing skill
+    const res3 = await request.get('/api/companies/by-skill/NoSuchSkillXYZ');
+    expect(res3.status()).toBe(200);
+    const body3 = await res3.json();
+    expect(body3.count).toBe(0);
+    expect(body3.items).toEqual([]);
+  });
+
 
   // optional negative tests (invalid id / not found)
   test('GET /api/companies/:id with invalid id returns 400', async ({ request }) => {
