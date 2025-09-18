@@ -12,8 +12,10 @@ export async function GET(request) {
     const skill = url.searchParams.get('skill');
 
     const client = await clientPromise;
-    const db = client.db("workbook");          
-    const coll = db.collection("companies");  
+    const db = client.db("test");
+    const coll = db.collection("companies");
+
+    const total = await coll.countDocuments();
 
     const filter = {};
     if (name) filter.name = { $regex: new RegExp(name, 'i') };
@@ -21,7 +23,7 @@ export async function GET(request) {
     if (skill) filter['hiringCriteria.skills'] = { $in: [skill] };
 
     const items = await coll.find(filter).skip(skip).limit(limit).toArray();
-    return NextResponse.json({ count: items.length, items }, { status: 200 });
+    return NextResponse.json({ count: items.length, total, items }, { status: 200 });
   } catch (err) {
     console.error('GET /api/companies error:', err);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
