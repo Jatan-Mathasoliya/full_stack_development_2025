@@ -184,6 +184,59 @@ test.describe('Next.js (App Router) workbook API', () => {
     expect(body3.items).toEqual([]);
   });
 
+  test('GET /api/companies/by-location/:location works correctly', async ({ request }) => {
+
+    // 1️⃣ Positive case
+    const res1 = await request.get('/api/companies/by-location/Hyderabad');
+    expect(res1.status()).toBe(200);
+    const body1 = await res1.json();
+    expect(body1.count).toBeGreaterThan(0);
+    body1.items.forEach(it => {
+      expect(it.location.toLowerCase()).toBe('hyderabad');
+    });
+
+    // 2️⃣ Case-insensitive check
+    const res2 = await request.get('/api/companies/by-location/hyderabad');
+    expect(res2.status()).toBe(200);
+    const body2 = await res2.json();
+    expect(body2.count).toBe(body1.count);
+
+    // 3️⃣ Negative case
+    const res3 = await request.get('/api/companies/by-location/NoSuchCity');
+    expect(res3.status()).toBe(200);
+    const body3 = await res3.json();
+    expect(body3.count).toBe(0);
+    expect(body3.items).toEqual([]);
+  });
+
+  test('GET /api/companies/benifits/:benifit works correctly', async ({ request }) => {
+    // 1️⃣ Exact benifit
+    const res1 = await request.get('/api/companies/benifits/Insurance');
+    expect(res1.status()).toBe(200);
+    const body1 = await res1.json();
+    expect(body1.count).toBeGreaterThan(0);
+    body1.items.forEach(it => {
+      const benefits = it.benefits.map(b => b.toLowerCase());
+      expect(benefits.some(b => b.includes('insurance'))).toBeTruthy();
+    });
+
+    // 2️⃣ Partial match
+    const res2 = await request.get('/api/companies/benifits/Health');
+    expect(res2.status()).toBe(200);
+    const body2 = await res2.json();
+    body2.items.forEach(it => {
+      const benefits = it.benefits.map(b => b.toLowerCase());
+      expect(benefits.some(b => b.includes('health'))).toBeTruthy();
+    });
+
+    // 3️⃣ Case-insensitive
+    const res3 = await request.get('/api/companies/benifits/insurance');
+    expect(res3.status()).toBe(200);
+    const body3 = await res3.json();
+    expect(body3.count).toBe(body1.count);
+
+  });
+
 
   // optional negative tests (invalid id / not found)
   test('GET /api/companies/:id with invalid id returns 400', async ({ request }) => {
